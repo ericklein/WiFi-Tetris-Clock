@@ -1,0 +1,6 @@
+__vm/
+.vs/
+*.vcxproj*
+*.sln
+.DS_Store
+secrets.h

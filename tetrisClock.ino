@@ -1,29 +1,32 @@
 /*
   Project:      tetrisClock
-  Description:  Tetris clock that fetches its time Using the EzTimeLibrary
+  Description:  A network connected clock that displays time using falling tetris blocks
 
-  forked from code developed by @wene on a fork from @witnessmenow
   See README.md for target information
 */
 
-// hardware and internet configuration parameters
+// hardware and software configuration parameters
 #include "config.h"
-// private credentials for network
+// private credentials
 #include "secrets.h"
 
-#include <WiFi.h>
+// WiFi used to retrieve NTP time
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+  #include <WiFi.h>
+#endif
 
-// LED matrix control
+// LED matrix control; https://github.com/2dom/PxMatrix
 #include <PxMatrix.h>
 
-// This library draws out characters using a tetris block animation
-// https://github.com/toblum/TetrisAnimation
+// Draws out characters using tetris block animation; https://github.com/toblum/TetrisAnimation
 #include <TetrisMatrixDraw.h>
 
-// Library used for getting the time and adjusting for DST
-// https://github.com/ropg/ezTime
+// Get NTP and adjust for DST; https://github.com/ropg/ezTime
 #include <ezTime.h>
 
+// instantiate LED matrix objects
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
 TetrisMatrixDraw tetris(display); // Main clock
@@ -31,9 +34,7 @@ TetrisMatrixDraw tetris2(display); // The "M" of AM/PM
 TetrisMatrixDraw tetris3(display); // The "P" or "A" of AM/PM
 
 // global variables
-
 int rssi;
-
 bool networkAvailable = false;
 
 Timezone myTZ;

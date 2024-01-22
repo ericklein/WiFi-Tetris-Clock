@@ -1,4 +1,4 @@
-# WiFi-Tetris-Clock
+# WiFi Tetris Clock
 
 ## Contributors
 This is a fork from code developed by @wene from a fork originally created by @witnessmenow
@@ -35,9 +35,10 @@ A network connected clock that displays time using falling tetris blocks
 ### Power Wiring
 ![Screenshot](readme/wiring.png)
 
-### Information Sources
+## Information Sources
 
-### Issues and Feature Requests
+## Issues and Feature Requests
 - See GitHub Issues for project
 
-### .plan (big ticket items)
+## .plan (big ticket items)
+- move NTP time code from customized library to standard ESP32 time.h

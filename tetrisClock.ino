@@ -1,8 +1,6 @@
 /*
   Project:      tetrisClock
   Description:  A network connected clock that displays time using falling tetris blocks
-
-  See README.md for target information
 */
 
 // hardware and software configuration parameters
@@ -27,16 +25,13 @@
 #include <ezTime.h>
 
 // instantiate LED matrix objects
-PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
+PxMATRIX display(64, 32, ledMatrixLAT, ledMatrixOE, ledMatrixA, ledMatrixB, ledMatrixC, ledMatrixD, ledMatrixE);
 
 TetrisMatrixDraw tetris(display); // Main clock
 TetrisMatrixDraw tetris2(display); // The "M" of AM/PM
 TetrisMatrixDraw tetris3(display); // The "P" or "A" of AM/PM
 
 // global variables
-int rssi;
-bool networkAvailable = false;
-
 Timezone myTZ;
 
 bool setMatrixTime() {
@@ -47,7 +42,7 @@ bool setMatrixTime() {
 
   String timeString;
   String AmPmString;
-  if (twelveHourFormat) {
+  if (time12HourFormat) {
     // Get the time in format "1:15" or 11:15 (12 hour, no leading 0)
     // Check the EZTime Github page for info on
     // time formatting
@@ -66,10 +61,10 @@ bool setMatrixTime() {
       lastDisplayedAmPm = AmPmString;
       // Second character is always "M"
       // so need to parse it out
-      tetris2.setText("M", forceRefresh);
+      tetris2.setText("M", ledMatrixForceRefresh);
 
       // Parse out first letter of String
-      tetris3.setText(AmPmString.substring(0, 1), forceRefresh);
+      tetris3.setText(AmPmString.substring(0, 1), ledMatrixForceRefresh);
     }
   } else {
     // Get time in format "01:15" or "22:15"(24 hour with leading 0)
@@ -80,7 +75,7 @@ bool setMatrixTime() {
   if (lastDisplayedTime != timeString) {
     debugMessage(timeString,1);
     lastDisplayedTime = timeString;
-    tetris.setTime(timeString, forceRefresh);
+    tetris.setTime(timeString, ledMatrixForceRefresh);
     timeChanged = true;
   }
 
@@ -98,53 +93,11 @@ bool animateIntro(bool showColon)
 
   if(millis() > first_call + 1000)   // switch to clock animation 20 seconds after first call
   {
-    activeAnimation = twelveHourFormat ? animateTwelveHour : animateTwentyFourHour;
+    activeAnimation = time12HourFormat ? animateTwelveHour : animateTwentyFourHour;
     tetris.scale = 2;
   }
 
   return false;
-}
-
-bool animateTwelveHour(bool showColon)
-{
-  setMatrixTime();
-
-  // Place holders for checking are any of the tetris objects
-  // currently still animating.
-  bool tetris1Done = false;
-  bool tetris2Done = false;
-  bool tetris3Done = false;
-
-  tetris1Done = tetris.drawNumbers(-6, 26, showColon);
-  tetris2Done = tetris2.drawText(56, 25);
-
-  // Only draw the top letter once the bottom letter is finished.
-  if (tetris2Done) {
-    tetris3Done = tetris3.drawText(56, 15);
-  }
-
-  return tetris1Done && tetris2Done && tetris3Done;
-}
-
-bool animateTwentyFourHour(bool showColon)
-{
-  setMatrixTime();
-
-  return tetris.drawNumbers(2, 26, showColon);
-}
-
-void drawConnecting(int x = 0, int y = 0)
-{
-  tetris.drawChar("C", x, y, tetris.tetrisCYAN);
-  tetris.drawChar("o", x + 5, y, tetris.tetrisMAGENTA);
-  tetris.drawChar("n", x + 11, y, tetris.tetrisYELLOW);
-  tetris.drawChar("n", x + 17, y, tetris.tetrisGREEN);
-  tetris.drawChar("e", x + 22, y, tetris.tetrisBLUE);
-  tetris.drawChar("c", x + 27, y, tetris.tetrisRED);
-  tetris.drawChar("t", x + 32, y, tetris.tetrisWHITE);
-  tetris.drawChar("i", x + 37, y, tetris.tetrisMAGENTA);
-  tetris.drawChar("n", x + 42, y, tetris.tetrisYELLOW);
-  tetris.drawChar("g", x + 47, y, tetris.tetrisGREEN);
 }
 
 void setup() {
@@ -155,56 +108,29 @@ void setup() {
 
     // Display key configuration parameters
     debugMessage("tetrisClock started", 1);
-    debugMessage("Device ID: " + String(DEVICE_ID),1);
-    debugMessage(String("Internet service reconnect delay is ") + CONNECT_ATTEMPT_INTERVAL + " seconds", 2);
+    debugMessage("Device ID: " + String(networkDeviceID),1);
+    debugMessage(String("Internet service reconnect delay is ") + networkConnectAttemptInterval + " seconds", 2);
   #endif
 
   // Intialize display library
-  display.begin(SCAN_RATE);
-  display.clearDisplay();
-  display.display(70);
+  display.begin(ledMatrixScanRate);
 
-  WiFi.hostname(DEVICE_ID);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
   drawConnecting(5,10);
-  for (int tries = 1; tries <= CONNECT_ATTEMPT_LIMIT; tries++)
+  display.display(70);
+  if (networkConnect())
   {
-    if (WiFi.status() == WL_CONNECTED)
-    {
-      rssi = abs(WiFi.RSSI());
-      debugMessage(String("WiFi IP address lease from ") + WIFI_SSID + " is " + WiFi.localIP().toString(),1);
-      debugMessage(String("WiFi RSSI is: ") + rssi + " dBm",2);
-      networkAvailable = true;
-      //setDebug(INFO);
-      waitForSync();
-      myTZ.setLocation(F(MYTIMEZONE));
-      debugMessage(String("Time in local timezone: ") + myTZ.dateTime(),1);
-      break;
-    }
-    else
-    {
-      unsigned long now = millis();
-      unsigned long start_time = now;
-      while(now < start_time + (CONNECT_ATTEMPT_LIMIT*1000))
-      {
-        now = millis();
-        if(0 == now % (unsigned long)2)
-        {
-          display.display(70);
-        }
-      }
-    }
+    // set the time
+    waitForSync();
+    myTZ.setLocation(timeMyTimeZone);
+    debugMessage(String("Time in local timezone: ") + myTZ.dateTime(),1);
   }
-  if (!networkAvailable)
-    debugMessage("BAM",1);
-}
-
-static bool showColon()
-{
-  static unsigned int colonCounter = 0;
-  colonCounter++;
-  unsigned int colonFraction = colonCounter / 5;
-  return !!(colonFraction % 2);
+  else
+  {
+    debugMessage("No network to set time, stopping execution",1);
+    drawNoNetwork(5,10);
+    display.display(70);
+    powerDisable(hardwareRebootInterval);
+  }
 }
 
 void loop()
@@ -236,7 +162,71 @@ void loop()
   }
 }
 
-void debugMessage(String messageText, int messageLevel)
+static bool showColon()
+{
+  static uint8_t colonCounter = 0;
+  colonCounter++;
+  uint8_t colonFraction = colonCounter / 5;
+  return !!(colonFraction % 2);
+}
+
+bool animateTwelveHour(bool showColon)
+{
+  setMatrixTime();
+
+  // Place holders for checking are any of the tetris objects
+  // currently still animating.
+  bool tetris1Done = false;
+  bool tetris2Done = false;
+  bool tetris3Done = false;
+
+  tetris1Done = tetris.drawNumbers(-6, 26, showColon);
+  tetris2Done = tetris2.drawText(56, 25);
+
+  // Only draw the top letter once the bottom letter is finished.
+  if (tetris2Done) {
+    tetris3Done = tetris3.drawText(56, 15);
+  }
+
+  return tetris1Done && tetris2Done && tetris3Done;
+}
+
+bool animateTwentyFourHour(bool showColon)
+{
+  setMatrixTime();
+
+  return tetris.drawNumbers(2, 26, showColon);
+}
+
+void drawConnecting(uint8_t initialX, uint8_t initialY)
+{
+  tetris.drawChar("C", initialX, initialY, tetris.tetrisCYAN);
+  tetris.drawChar("o", initialX + 5, initialY, tetris.tetrisMAGENTA);
+  tetris.drawChar("n", initialX + 11, initialY, tetris.tetrisYELLOW);
+  tetris.drawChar("n", initialX + 17, initialY, tetris.tetrisGREEN);
+  tetris.drawChar("e", initialX + 22, initialY, tetris.tetrisBLUE);
+  tetris.drawChar("c", initialX + 27, initialY, tetris.tetrisRED);
+  tetris.drawChar("t", initialX + 32, initialY, tetris.tetrisWHITE);
+  tetris.drawChar("i", initialX + 37, initialY, tetris.tetrisMAGENTA);
+  tetris.drawChar("n", initialX + 42, initialY, tetris.tetrisYELLOW);
+  tetris.drawChar("g", initialX + 47, initialY, tetris.tetrisGREEN);
+}
+
+void drawNoNetwork(uint8_t initialX, uint8_t initialY)
+{
+  tetris.drawChar("N", initialX, initialY, tetris.tetrisCYAN);
+  tetris.drawChar("o", initialX + 5, initialY, tetris.tetrisMAGENTA);
+  tetris.drawChar(" ", initialX + 11, initialY, tetris.tetrisYELLOW);
+  tetris.drawChar("n", initialX + 17, initialY, tetris.tetrisGREEN);
+  tetris.drawChar("e", initialX + 22, initialY, tetris.tetrisBLUE);
+  tetris.drawChar("t", initialX + 27, initialY, tetris.tetrisRED);
+  tetris.drawChar("w", initialX + 32, initialY, tetris.tetrisWHITE);
+  tetris.drawChar("o", initialX + 37, initialY, tetris.tetrisMAGENTA);
+  tetris.drawChar("r", initialX + 42, initialY, tetris.tetrisYELLOW);
+  tetris.drawChar("k", initialX + 47, initialY, tetris.tetrisGREEN);
+}
+
+void debugMessage(String messageText, uint8_t messageLevel)
 // wraps Serial.println as #define conditional
 {
   #ifdef CODEDEBUG
@@ -246,4 +236,52 @@ void debugMessage(String messageText, int messageLevel)
       //Serial.flush();  // Make sure the message gets output (before any sleeping...)
     }
   #endif
+}
+
+bool networkConnect() 
+// Connect to WiFi network specified in secrets.h
+{
+  // reconnect to WiFi only if needed
+  if (WiFi.status() == WL_CONNECTED) 
+  {
+    debugMessage("Already connected to WiFi",2);
+    return true;
+  }
+  // set hostname has to come before WiFi.begin
+  WiFi.hostname(networkDeviceID);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+  for (uint8_t loop = 1; loop <= networkConnectAttemptLimit; loop++)
+  // Attempts WiFi connection, and if unsuccessful, re-attempts after networkConnectAttemptInterval second delay for networkConnectAttemptLimit times
+  {
+    if (WiFi.status() == WL_CONNECTED) {
+      debugMessage(String("WiFi IP address lease from ") + WIFI_SSID + " is " + WiFi.localIP().toString(), 1);
+      debugMessage(String("WiFi RSSI is: ") + WiFi.RSSI() + " dBm", 1);
+      return true;
+    }
+    debugMessage(String("Connection attempt ") + loop + " of " + networkConnectAttemptLimit + " to " + WIFI_SSID + " failed", 1);
+    // use of delay() OK as this is initialization code
+    delay(networkConnectAttemptInterval * 1000);  // converted into milliseconds
+  }
+  return false;
+}
+
+void networkDisconnect()
+{
+  WiFi.disconnect();
+  WiFi.mode(WIFI_OFF);
+  debugMessage("power off: WiFi",1);
+}
+
+void powerDisable(uint8_t deepSleepTime)
+// Powers down hardware in preparation for board deep sleep
+{
+  debugMessage("powerDisable started",1);
+
+  networkDisconnect();
+
+  esp_sleep_enable_timer_wakeup(deepSleepTime*1000000); // ESP microsecond modifier
+  debugMessage(String("powerDisable complete: ESP32 deep sleep for ") + deepSleepTime + " seconds",1);
+  esp_deep_sleep_start();
 }

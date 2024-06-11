@@ -1,7 +1,7 @@
 # WiFi Tetris Clock
 
 ## Contributors
-This is a fork from code developed by @wene from a fork originally created by @witnessmenow
+This code is forked from @wene fork of original code from @witnessmenow
 
 ## Purpose
 ![Screenshot](readme/front_face.png)

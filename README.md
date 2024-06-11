@@ -27,7 +27,7 @@ A network connected clock that displays time using falling tetris blocks
   - LED Matrix featherboard
     - https://www.tindie.com/products/brianlough/huzzah-32-matrix-featherwing/#specs
 - Power Supply
-  - 5V, 4A power supply required to properly drive the LED Matrix
+  - 5V, ?A power supply required to properly drive the LED Matrix
 
 ## Pinouts
 - The breakout board handles pin and power cabling, and the underlying pinouts are described in config.h

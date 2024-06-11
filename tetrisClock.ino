@@ -79,22 +79,7 @@ bool setMatrixTime() {
 }
 
 // set function pointer to the active animation
-auto activeAnimation = animateIntro;
-
-bool animateIntro(bool showColon)
-{
-  static unsigned long first_call = millis();  // remember the time of the first call
-
-  tetris.drawText(1, 21);
-
-  if(millis() > first_call + 1000)   // switch to clock animation 20 seconds after first call
-  {
-    activeAnimation = time12HourFormat ? animateTwelveHour : animateTwentyFourHour;
-    tetris.scale = 2;
-  }
-
-  return false;
-}
+auto activeAnimation = time12HourFormat ? animateTwelveHour : animateTwentyFourHour;
 
 void setup() {
   #ifdef CODEDEBUG
@@ -111,6 +96,7 @@ void setup() {
   // Intialize display library
   display.begin(ledMatrixScanRate);
 
+  tetris.scale = 2;
   drawConnecting(5,10);
   if (networkConnect())
   {
@@ -194,6 +180,7 @@ bool animateTwentyFourHour(bool showColon)
 
 void drawConnecting(uint8_t initialX, uint8_t initialY)
 {
+  debugMessage("Starting drawConnecting",2);
   tetris.drawChar("C", initialX, initialY, tetris.tetrisCYAN);
   tetris.drawChar("o", initialX + 5, initialY, tetris.tetrisMAGENTA);
   tetris.drawChar("n", initialX + 11, initialY, tetris.tetrisYELLOW);
@@ -205,6 +192,7 @@ void drawConnecting(uint8_t initialX, uint8_t initialY)
   tetris.drawChar("n", initialX + 42, initialY, tetris.tetrisYELLOW);
   tetris.drawChar("g", initialX + 47, initialY, tetris.tetrisGREEN);
   display.display(70);
+  debugMessage("exiting drawConnecting",2);
 }
 
 void drawNoNetwork(uint8_t initialX, uint8_t initialY)

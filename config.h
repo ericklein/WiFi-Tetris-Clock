@@ -5,7 +5,7 @@
 
 // Configuration Step 1: Set debug message output
 // comment out to turn off; 1 = summary, 2 = verbose
-#define CODEDEBUG 2
+// #define CODEDEBUG 2
 
 // Configuration variables that change rarely
 

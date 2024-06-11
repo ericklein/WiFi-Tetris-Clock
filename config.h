@@ -5,38 +5,42 @@
 
 // Configuration Step 1: Set debug message output
 // comment out to turn off; 1 = summary, 2 = verbose
-#define CODEDEBUG 1
+// #define CODEDEBUG 2
 
-// Set a timezone using the following list
-// https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-#define MYTIMEZONE "America/Los_Angeles"
+// Configuration variables that change rarely
 
-// Sets whether the clock should be 12 hour format or not.
-const bool twelveHourFormat = true;
+// Time
+// Set a timezone using https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+const String timeMyTimeZone = "America/Los_Angeles";
 
-// If this is set to false, the number will only change if the value behind it changes
-// e.g. the digit representing the least significant minute will be replaced every minute,
-// but the most significant number will only be replaced every 10 minutes.
-// When true, all digits will be replaced every minute.
-const 	bool forceRefresh = false;
+// Set the clock for either 12 or 24 hour time display
+const bool time12HourFormat = true;
 
-// set client ID; used by wifi
-#define DEVICE_ID "tetrisClock"
+// Network
+// client ID used by WiFi
+const String networkDeviceID = "tetrisClock";
+// max connection attempts to network services
+const uint8_t networkConnectAttemptLimit = 3;
+// seconds between network service connect attempts
+const uint8_t networkConnectAttemptInterval = 10;
 
-// Configuration variables that are less likely to require changes
-
-#define CONNECT_ATTEMPT_LIMIT	3 // max connection attempts to internet services
-#define CONNECT_ATTEMPT_INTERVAL 10 // seconds between internet service connect attempts
-
-// LED matrix parameters
-#define P_LAT 22
-#define P_A 19
-#define P_B 23
-#define P_C 18
-#define P_D 5
-#define P_E 15
-#define P_OE 21 // Adafruit ESP32 Feather to @witnessmenow Feather adapter board
-//#define P_OE 2 // Generic ESP32
+// LED Matrix
+const uint8_t ledMatrixLAT = 22;
+const uint8_t ledMatrixA = 19;
+const uint8_t ledMatrixB = 23;
+const uint8_t ledMatrixC = 18;
+const uint8_t ledMatrixD = 5;
+const uint8_t ledMatrixE = 15;
+const uint8_t ledMatrixOE = 21; // Adafruit ESP32 Feather to @witnessmenow Feather adapter board
+//const uint8_t ledMatrixOE = 2; // Generic ESP32
 
 // LED matrix scan rate
-#define SCAN_RATE 16
+const uint8_t ledMatrixScanRate = 16;
+
+// When false, displayed numbers only change if the value changes
+// When true, all digits will be refreshed every minute
+const bool ledMatrixForceRefresh = false;
+
+// Hardware
+// Sleep time in seconds if hardware error occurs
+const uint8_t hardwareRebootInterval = 10;

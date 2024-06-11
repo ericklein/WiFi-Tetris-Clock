@@ -1,7 +1,7 @@
-# WiFi-Tetris-Clock
+# WiFi Tetris Clock
 
 ## Contributors
-This is a fork from code developed by @wene from a fork originally created by @witnessmenow
+This code is forked from @wene fork of original code from @witnessmenow
 
 ## Purpose
 ![Screenshot](readme/front_face.png)
@@ -27,7 +27,7 @@ A network connected clock that displays time using falling tetris blocks
   - LED Matrix featherboard
     - https://www.tindie.com/products/brianlough/huzzah-32-matrix-featherwing/#specs
 - Power Supply
-  - 5V, 4A power supply required to properly drive the LED Matrix
+  - 5V, ?A power supply required to properly drive the LED Matrix
 
 ## Pinouts
 - The breakout board handles pin and power cabling, and the underlying pinouts are described in config.h
@@ -35,9 +35,10 @@ A network connected clock that displays time using falling tetris blocks
 ### Power Wiring
 ![Screenshot](readme/wiring.png)
 
-### Information Sources
+## Information Sources
 
-### Issues and Feature Requests
+## Issues and Feature Requests
 - See GitHub Issues for project
 
-### .plan (big ticket items)
+## .plan (big ticket items)
+- move NTP time code from customized library to standard ESP32 time.h

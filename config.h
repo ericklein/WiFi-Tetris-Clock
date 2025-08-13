@@ -19,10 +19,8 @@ const bool time12HourFormat = true;
 // Network
 // client ID used by WiFi
 const String networkDeviceID = "tetrisClock";
-// max connection attempts to network services
-const uint8_t networkConnectAttemptLimit = 3;
-// seconds between network service connect attempts
-const uint8_t networkConnectAttemptInterval = 10;
+const uint32_t timeWiFiKeepAliveIntervalMS = 300000; // Retry every 300 seconds
+const uint32_t timeNetworkConnectTimeoutMS = 10000;
 
 // LED Matrix
 const uint8_t ledMatrixLAT = 22;

@@ -1,6 +1,10 @@
+data/
+private/
+secrets.h
+*.sublime-project
+*.sublime-workspace
 __vm/
 .vs/
-*.vcxproj*
 *.sln
+*.vcxproj*
 .DS_Store
-secrets.h

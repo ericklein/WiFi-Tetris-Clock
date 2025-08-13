@@ -16,18 +16,17 @@ A network connected clock that displays time using falling tetris blocks
 
 ## Bill of Materials (BOM)
 - MCU
-    - Tested on ESP32 boards
-      - Adafruit Feather Huzzah ESP32
+    - Tested on[Adafruit Feather Huzzah ESP32](https://www.adafruit.com/product/3405)
 - WiFi
     - Supported hardware
         - ESP32 based boards
 - Screen
   - RGB LED Matrix 64 x 32
     - HUB75 connectors (standard)
-  - LED Matrix featherboard
-    - https://www.tindie.com/products/brianlough/huzzah-32-matrix-featherwing/#specs
+  - [LED Matrix featherboard] (https://www.tindie.com/products/brianlough/huzzah-32-matrix-featherwing/#specs)
+    - 
 - Power Supply
-  - 5V, ?A power supply required to properly drive the LED Matrix
+  - 5V power supply. Depending on matrix size, <=4A required to drive the LED Matrix at max brightness.
 
 ## Pinouts
 - The breakout board handles pin and power cabling, and the underlying pinouts are described in config.h

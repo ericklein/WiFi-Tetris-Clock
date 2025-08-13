@@ -32,6 +32,12 @@ TetrisMatrixDraw tetris(display); // Main clock
 TetrisMatrixDraw tetris2(display); // The "M" of AM/PM
 TetrisMatrixDraw tetris3(display); // The "P" or "A" of AM/PM
 
+// Global variables
+// timers
+uint32_t timeLastWiFiConnectMS = 0;
+
+uint8_t rssi = 0; // 0 value used to indicate no WiFi connection
+
 bool setMatrixTime() {
   static String lastDisplayedTime;
   static String lastDisplayedAmPm;
@@ -86,17 +92,16 @@ void setup() {
     Serial.begin(115200);
     // wait for serial port connection
     while (!Serial)
-
     // Display key configuration parameters
-    debugMessage("tetrisClock started", 1);
-    debugMessage("device ID: " + String(networkDeviceID),1);
-    debugMessage(String("internet reconnect delay is ") + networkConnectAttemptInterval + " seconds", 2);
+    debugMessage(String("tetrisClock started with device ID: ") + networkDeviceID, 1);
+    debugMessage(String("WiFi connection check interval is ") + (timeWiFiKeepAliveIntervalMS/1000) + " seconds",1);
   #endif
 
   // Intialize display library
   display.begin(ledMatrixScanRate);
-
   tetris.scale = 2;
+
+  // connect to Wifi
   drawConnecting(5,10);
   if (networkConnect())
   {
@@ -107,7 +112,8 @@ void setup() {
   }
   else
   {
-    debugMessage("No network to set time, rebooting",1);
+    // alert user to the WiFi connectivity problem
+    debugMessage(String("Connection to ") + WIFI_SSID + " failed", 1);
     drawNoNetwork(5,10);
     powerDisable(hardwareRebootInterval);
   }
@@ -119,6 +125,19 @@ void loop()
   static bool colonVisible = true;
 
   unsigned long now = millis();
+
+  // re-establish WiFi connection if needed
+  if ((WiFi.status() != WL_CONNECTED) && (millis() - timeLastWiFiConnectMS > timeWiFiKeepAliveIntervalMS)) {
+    timeLastWiFiConnectMS = millis();
+    if (!networkConnect()) {
+      // alert user to the WiFi connectivity problem
+      rssi = 0;
+      debugMessage(String("Connection to ") + WIFI_SSID + " failed", 1);
+      // IMPROVEMENT: How do we want to handle this? the rest of the code will barf...
+      // ESP.restart();
+    }
+    waitForSync(); // wait until time is synchonized from NTP
+  }
 
   if(0 == now % (unsigned long)100)
   {
@@ -231,25 +250,27 @@ bool networkConnect()
     debugMessage("Already connected to WiFi",2);
     return true;
   }
+
+  WiFi.mode(WIFI_STA); // IMPROVEMENT: test to see if this improves connection time
   // set hostname has to come before WiFi.begin
   WiFi.hostname(networkDeviceID);
-
   WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-  for (uint8_t loop = 1; loop <= networkConnectAttemptLimit; loop++)
-  // Attempts WiFi connection, and if unsuccessful, re-attempts after networkConnectAttemptInterval second delay for networkConnectAttemptLimit times
-  {
-    if (WiFi.status() == WL_CONNECTED) {
+  uint32_t timeWiFiConnectStart = millis();
+  while ((WiFi.status() != WL_CONNECTED) && ((millis() - timeWiFiConnectStart) < timeNetworkConnectTimeoutMS)) {
+    delay(100);
+  }
+
+  if (WiFi.status() == WL_CONNECTED) 
+    {
+      rssi = abs(WiFi.RSSI());
       debugMessage(String("WiFi IP address lease from ") + WIFI_SSID + " is " + WiFi.localIP().toString(), 1);
-      debugMessage(String("WiFi RSSI is: ") + WiFi.RSSI() + " dBm", 1);
+      debugMessage(String("WiFi RSSI is: ") + rssi + " dBm", 2);
       return true;
     }
-    debugMessage(String("Connection attempt ") + loop + " of " + networkConnectAttemptLimit + " to " + WIFI_SSID + " failed", 1);
-    debugMessage(String("WiFi status message ") + networkWiFiMessage(WiFi.status()),2);
-    // use of delay() OK as this is initialization code
-    delay(networkConnectAttemptInterval * 1000);  // converted into milliseconds
+  else {
+    return false;
   }
-  return false;
 }
 
 const char* networkWiFiMessage(wl_status_t status)
@@ -268,6 +289,7 @@ const char* networkWiFiMessage(wl_status_t status)
 }
 
 void networkDisconnect()
+// Disconnect from WiFi network
 {
   WiFi.disconnect();
   WiFi.mode(WIFI_OFF);

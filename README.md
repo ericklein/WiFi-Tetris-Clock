@@ -13,6 +13,7 @@ A network connected clock that displays time using falling tetris blocks
 ## Target configuration
 - Private access settings like WiFi SSID and password are contained in a `secrets.h` file that is not included in this repo.  Instead you'll find the file `secrets_template.h`, which should be copied to `secrets.h` and then edited to supply the right access credentials and configuration values to match your deployment environment.
 - See config.h for parameter configuration
+- Only compiles with Espressif 2.0.x board manager package. There is an issue with 3.x and the PxMatrix library.
 
 ## Bill of Materials (BOM)
 - MCU
